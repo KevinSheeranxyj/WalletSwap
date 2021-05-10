@@ -3,6 +3,8 @@ package top.dtc.crypto_cli.util;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 
+import java.util.Arrays;
+
 public class Hash160 {
 
     public static byte[] hash(byte[] bytes) {
@@ -12,6 +14,10 @@ public class Hash160 {
         byte[] result = new byte[digest.getDigestSize()];
         digest.doFinal(result, 0);
         return result;
+    }
+
+    public static byte[] genFingerprint(byte[] bytes) {
+        return Arrays.copyOf(hash(bytes), 4);
     }
 
 }

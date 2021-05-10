@@ -8,20 +8,20 @@ import java.util.Arrays;
 public class Sha256Hash {
 
     public static byte[] appendFingerprint(byte[] input) {
-        return Bytes.concat(input, fingerprint(input));
+        return Bytes.concat(input, genFingerprint(input));
     }
 
     public static byte[] removeFingerprint(byte[] input) {
         byte[] bytes = Arrays.copyOf(input, input.length - 4);
         byte[] fingerprint = Arrays.copyOfRange(input, input.length - 4, input.length);
-        byte[] fingerprintToCheck = fingerprint(bytes);
+        byte[] fingerprintToCheck = genFingerprint(bytes);
         if (Arrays.equals(fingerprint, fingerprintToCheck)) {
             return bytes;
         }
         return null;
     }
 
-    public static byte[] fingerprint(byte[] input) {
+    public static byte[] genFingerprint(byte[] input) {
         byte[] hash = Sha256Hash.hashTwice(input);
         return Arrays.copyOf(hash, 4);
     }

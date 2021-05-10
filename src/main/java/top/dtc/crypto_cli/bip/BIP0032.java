@@ -72,7 +72,7 @@ public class BIP0032 {
         byte[] parentPrivateKey = Arrays.copyOfRange(hdPrivateKey, 46, 78);
         ECPoint point = CURVE.getG().multiply(new BigInteger(1, parentPrivateKey));
         byte[] parentPublicKey = point.getEncoded(true);
-        byte[] parentFingerprint = Arrays.copyOf(Hash160.hash(parentPublicKey), 4);
+        byte[] parentFingerprint = Hash160.genFingerprint(parentPublicKey);
 
         byte[] dataToHash = harden ? Bytes.concat(new byte[] {0x00}, parentPrivateKey, childNumber) : Bytes.concat(parentPublicKey, childNumber);
         byte[] digest = HmacUtils.getInitializedMac(HmacAlgorithms.HMAC_SHA_512, parentChainCode).doFinal(dataToHash);

@@ -9,8 +9,11 @@ import java.util.Arrays;
 
 public class WIF {
 
+    private static final byte[] PREFIX = new byte[] {(byte) 0x80};
+    private static final byte[] FORMAT = new byte[] {(byte) 0x01};
+
     public static byte[] encode(byte[] privateKey) {
-        byte[] bytes = Bytes.concat(new byte[] {(byte) 0x80}, privateKey, new byte[] {(byte) 0x01});
+        byte[] bytes = Bytes.concat(PREFIX, privateKey, FORMAT);
         return Sha256Hash.appendFingerprint(bytes);
     }
 
