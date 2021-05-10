@@ -43,7 +43,7 @@ public class BIP0032 {
                 breakSign,
                 privateKey
         );
-        return Sha256Hash.hashWithCheck(data);
+        return Sha256Hash.appendFingerprint(data);
     }
 
     public static byte[] genHdPublicKey(byte[] hdPrivateKey) {
@@ -62,7 +62,7 @@ public class BIP0032 {
                 chainCode,
                 Arrays.copyOfRange(publicKey, 0, 33)
         );
-        return Sha256Hash.hashWithCheck(data);
+        return Sha256Hash.appendFingerprint(data);
     }
 
     public static byte[] derive(byte[] hdPrivateKey, int addressIndex, boolean harden) {
@@ -95,7 +95,7 @@ public class BIP0032 {
                 breakSign,
                 privateKey
         );
-        return Sha256Hash.hashWithCheck(data);
+        return Sha256Hash.appendFingerprint(data);
     }
 
     public static byte[] derive(byte[] hdMasterPrivateKey, String path) {
@@ -107,13 +107,17 @@ public class BIP0032 {
         }
         byte[] bytes = hdMasterPrivateKey;
         for (String seg : path.substring(2).split("/")) {
-            bytes = derive(bytes, Integer.parseInt(seg.endsWith("H") ? seg.substring(0, seg.length() - 1) : seg), seg.endsWith("H"));
+            bytes = derive(bytes, Integer.parseInt(seg.endsWith("H") || seg.endsWith("'") ? seg.substring(0, seg.length() - 1) : seg), seg.endsWith("H") || seg.endsWith("'"));
         }
         return bytes;
     }
 
     public static byte[] toPrivateKey(byte[] hdPrivateKey) {
         return Arrays.copyOfRange(hdPrivateKey, 46, 78);
+    }
+
+    public static byte[] toPublicKey(byte[] hdPublicKey) {
+        return Arrays.copyOfRange(hdPublicKey, 45, 78);
     }
 
 //    public static byte[] genHdPublicKeyBySeed(byte[] seed) {

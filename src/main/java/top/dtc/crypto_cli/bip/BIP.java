@@ -29,7 +29,7 @@ public class BIP {
             int addressIndex
     ) {
         byte[] seed = BIP0039.toBytes(mnemonics);
-        byte[] bytes = BIP0044.gen(seed, coinType, account, external, addressIndex);
+        byte[] bytes = BIP0044.derive(seed, coinType, account, external, addressIndex);
         return Base58.encode(bytes);
     }
 

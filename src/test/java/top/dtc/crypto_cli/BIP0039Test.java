@@ -1,4 +1,4 @@
-package top.dtc.common.crypto;
+package top.dtc.crypto_cli;
 
 import com.google.common.io.BaseEncoding;
 import org.apache.commons.codec.DecoderException;
