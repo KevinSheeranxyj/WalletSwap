@@ -23,7 +23,7 @@ public final class BIP0039 {
     private static final String ENGLISH_SHA256 = "ad90bf3beb7b0eb7e5acd74727dc0da96e0a280a258354e7293fb7e211ac03db";
 
     public static void init() throws IOException {
-        URL resource = BIP0039.class.getClassLoader().getResource("classpath:bip-0039/english.txt");
+        URL resource = BIP0039.class.getResource("/bip-0039/english.txt");
         if (resource == null) {
             throw new RuntimeException("Dict file reading failed");
         }
