@@ -1,25 +1,41 @@
 package top.dtc.crypto_cli;
 
 import com.google.common.base.Strings;
+import top.dtc.crypto_cli.bip.BIP0032;
 import top.dtc.crypto_cli.bip.BIP0039;
+import top.dtc.crypto_cli.bip.BIP0044;
+import top.dtc.crypto_cli.slip.SLIP0044;
 import top.dtc.crypto_cli.util.Base58;
 import top.dtc.crypto_cli.util.Sha256Hash;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.regex.Pattern;
 
 public class Application {
 
     static final Scanner scanner = new Scanner(System.in);
+    static final Pattern NUMERIC_PATTERN = Pattern.compile("\\d+");
+
     static final int ENTROPY_LENGTH = 32;
     static final int MNEMONICS_COUNT = 24;
-    static final String SEED_PASSPHASE = "DTC";
+//    static final String SEED_PASSPHASE = "DTC";
+    static final String SEED_PASSPHASE = "mMpc]HXW&:$98;7<";
     static int TIMER = 3; // 0 < TIMER <= 9
+    static int BATCH_SIZE = 10000;
 
     public static void main(String[] args) {
+        // Init BIP-39
+        BIP0039.init();
+
         try {
-            select();
+            menu();
         } catch (Exception e) {
             System.out.print("\033[H\033[2J");
             System.out.flush();
@@ -27,9 +43,11 @@ public class Application {
         } finally {
             scanner.close();
         }
+        System.out.println();
+        System.out.println("Thanks for using");
     }
 
-    public static void select() throws InterruptedException {
+    public static void menu() throws InterruptedException, NoSuchAlgorithmException, InvalidKeySpecException {
         System.out.println("\n" +
                 "                                                                                                                                                               \n" +
                 "88888888ba,  888888888888  ,ad8888ba,        ,ad8888ba,   88888888ba  8b        d8  88888888ba  888888888888  ,ad8888ba,         ,ad8888ba,   88           88  \n" +
@@ -47,32 +65,28 @@ public class Application {
         System.out.println("  2) Derive HD Wallets");
         System.out.println("  0) Quit");
         System.out.println();
-        System.out.print("Please select method [0-3]: ");
+        int method = intInput("Please select method", 0, 2);
 
 //        String method = scanner.nextLine();
-        String method = "2";
+//        String method = "2";
         System.out.println();
         System.out.println();
 
         switch (method) {
-            case "0":
+            case 0:
                 break;
-            case "1":
+            case 1:
                 genMnemonics();
                 break;
-            case "2":
+            case 2:
                 deriveWallets();
                 break;
             default:
                 System.out.println("Wrong input, program will quit");
         }
-        System.out.println("Thanks for using");
     }
 
     private static void genMnemonics() throws InterruptedException {
-        // 0-0 Init BIP-39
-        BIP0039.init();
-
         // 1-0 Generate random entropy
         byte[] entropy = new byte[ENTROPY_LENGTH];
         new Random().nextBytes(entropy);
@@ -93,7 +107,7 @@ public class Application {
         // 2-0 Prepare output strings
         String mnemonicsPart1Str = String.join(" ", mnemonicsPart1);
         String mnemonicsPart2Str = String.join(" ", mnemonicsPart2);
-        String mnemonicsHashStr = Base58.encode(entropyHash).substring(0, 8);
+        String entropyHashStr = Base58.encode(entropyHash).substring(0, 8);
 
         // 2-1 Print info
         System.out.println("## Mnemonics will show below ##");
@@ -111,32 +125,32 @@ public class Application {
 
         // 2-4 Print mnemonics hash
         System.out.println("== Mnemonics hash ==");
-        print(mnemonicsHashStr);
+        print(entropyHashStr);
     }
 
-    private static void deriveWallets() throws InterruptedException {
+    private static void deriveWallets() throws InterruptedException, NoSuchAlgorithmException, InvalidKeySpecException {
         // 0-0 Input rules
         System.out.println("== Input rules ==");
         System.out.println();
-        System.out.println("* Use [SPACE] key to separate words");
+        System.out.println("* Use [SPACE] to separate words");
         System.out.println("* Press [ENTER] to confirm");
         System.out.println();
         System.out.println();
 
         // 1-0 Input mnemonics related data
         System.out.println("== Please input mnemonics 1st part ==");
-        String mnemonicsPart1Str = input();
+        String mnemonicsPart1Str = maskedInput();
         System.out.println("== Please input mnemonics 2nd part ==");
-        String mnemonicsPart2Str = input();
+        String mnemonicsPart2Str = maskedInput();
         System.out.println("== Please input mnemonics hash ==");
-        String mnemonicsHashStr = input();
+        String mnemonicsHashStr = maskedInput();
 
         // 1-1 Test
         if (mnemonicsHashStr.length() != 8) {
             throw new RuntimeException("Invalid mnemonics hash");
         }
         String[] mnemonics = (mnemonicsPart1Str + " " + mnemonicsPart2Str).split(" ");
-        if (mnemonics.length != 24) {
+        if (mnemonics.length != 24 || !BIP0039.checkMnemonics(mnemonics)) {
             throw new RuntimeException("Invalid mnemonics");
         }
         byte[] entropy = BIP0039.toBytes(mnemonics);
@@ -145,18 +159,104 @@ public class Application {
         if (!mnemonicsHashStr.equals(mnemonicsHashStrToCheck)) {
             throw new RuntimeException("Mismatch mnemonics hash");
         }
+
+        // 2-0 Input coin types and range
+        System.out.println("== Please fill these settings ==");
+        System.out.println();
+        boolean genBtn = booleanInput("Generate BTC?");
+        boolean genEth = booleanInput("Generate ETH?");
+        boolean genTrx = booleanInput("Generate TRX?");
+        if (!genBtn && !genEth && !genTrx) {
+            return;
+        }
+        int accountMin = intInput("Account number start", 0, Integer.MAX_VALUE);
+        int accountMax = intInput("Account number end", accountMin, accountMin + BATCH_SIZE);
+        int addressIndexMin = intInput("Address index start", 0, Integer.MAX_VALUE);
+        int addressIndexMax = intInput("Address index end", addressIndexMin, addressIndexMin + BATCH_SIZE);
+
+        // 2-1 Generate
+        byte[] seed = BIP0039.genSeed(mnemonics, SEED_PASSPHASE);
+        byte[] xprv_master = BIP0032.genHdMasterPrivateKey(seed);
+
+        StringBuilder builder = new StringBuilder();
+        if (genBtn) {
+            deriveKeys(builder, xprv_master, SLIP0044.BTC, accountMin, accountMax, addressIndexMin, addressIndexMax);
+        }
+        if (genEth) {
+            deriveKeys(builder, xprv_master, SLIP0044.ETH, accountMin, accountMax, addressIndexMin, addressIndexMax);
+        }
+        if (genTrx) {
+            deriveKeys(builder, xprv_master, SLIP0044.TRX, accountMin, accountMax, addressIndexMin, addressIndexMax);
+        }
+        String result = builder.toString().trim();
+
+        // 2-2 Pause
+        beep();
+        System.out.println();
+        System.out.println("Keys generated, press [ENTER] to upload");
+        scanner.nextLine();
+
+        // 3-0 Write to file (TEMPORARY)
+        String userDir = System.getProperty("user.dir");
+        try {
+            Files.writeString(Path.of(userDir, "test.dtc"), result);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println();
+        System.out.println();
+        System.out.println("Upload successful");
     }
 
-    private static String input() throws InterruptedException {
+    private static String maskedInput() throws InterruptedException {
         beep();
 
         String line = scanner.nextLine();
-        clearLines(1);
+        backLines(1);
         correctionTape(line.length());
-        clearLines(1);
+        backLines(1);
         System.out.println("<HIDDEN>");
         timer();
         return line.trim();
+    }
+
+    private static String[] mnemonicsInput() {
+        return null;
+    }
+
+    private static boolean booleanInput(String label) throws InterruptedException {
+        beep();
+
+        System.out.print(label + " [Y/N]: ");
+        String result = scanner.nextLine().trim();
+        switch (result) {
+            case "Y":
+            case "y":
+                return true;
+            case "N":
+            case "n":
+                return false;
+        }
+        backLines(1);
+        return booleanInput(label);
+    }
+
+    private static int intInput(String label, int min, int max) throws InterruptedException {
+        beep();
+
+        System.out.print(label + " [" + min + "..." + max + "]: ");
+        String result = scanner.nextLine().trim();
+        if (NUMERIC_PATTERN.matcher(result).matches()) {
+            try {
+                int number = Integer.parseInt(result);
+                if (number >= min && number <= max) {
+                    return number;
+                }
+            } finally {}
+        }
+        backLines(1);
+        return intInput(label, min, max);
     }
 
     private static void print(String str) throws InterruptedException {
@@ -171,11 +271,11 @@ public class Application {
 
         scanner.nextLine();
 
-        clearLines(1);
+        backLines(1);
         correctionTape(enter.length());
-        clearLines(3);
+        backLines(3);
         correctionTape(str.length());
-        clearLines(1);
+        backLines(1);
         System.out.println("<HIDDEN>");
         System.out.println();
 
@@ -194,7 +294,7 @@ public class Application {
         System.out.println(Strings.repeat(" ", length));
     }
 
-    private static void clearLines(int count) {
+    private static void backLines(int count) {
         System.out.print(String.format("\033[%dA", count));
         System.out.print("\033[2K");
         System.out.flush();
@@ -209,6 +309,40 @@ public class Application {
             i--;
         } while (i > 0);
         correctionTape(1);
+    }
+
+    private static void deriveKeys(
+            StringBuilder builder,
+            byte[] xprv_master,
+            int coinType,
+            int accountMin,
+            int accountMax,
+            int addressIndexMin,
+            int addressIndexMax
+    ) {
+        for (int account = accountMin; account <= accountMax; account++) {
+            for (int addressIndex = addressIndexMin; addressIndex <= addressIndexMax; addressIndex++) {
+                byte[] xprv = BIP0044.derive(
+                        xprv_master,
+                        coinType,
+                        account,
+                        true,
+                        addressIndex
+                );
+                byte[] xpub = BIP0032.genHdPublicKey(xprv);
+                byte[] prv = BIP0032.toPrivateKey(xprv);
+                byte[] pub = BIP0032.toPublicKey(xpub);
+                String line = String.format(
+                        "%d\t%d\t%d\t%s\t%s",
+                        coinType,
+                        account,
+                        addressIndex,
+                        Base58.encode(prv),
+                        Base58.encode(pub)
+                );
+                builder.append(line).append("\n");
+            }
+        }
     }
 
 }
