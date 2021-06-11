@@ -62,6 +62,15 @@ public final class BIP0039 {
         return result;
     }
 
+    public static boolean checkMnemonics(String[] mnemonics) {
+        for (String mnemonic : mnemonics) {
+            if (!ENGLISH_REV.containsKey(mnemonic)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static byte[] toBytes(String[] mnemonics) {
         if (mnemonics.length < 6 || mnemonics.length % 3 != 0) {
             throw new RuntimeException("Mnemonics length error: " + mnemonics.length);
