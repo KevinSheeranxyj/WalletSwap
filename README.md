@@ -2,9 +2,11 @@
 
 ## Supported Coin Types
 
-* 0: Bitcoin
-* 196: Tron
-* 60: Ether
+| Coin Type | Symbol | Coin    |
+|----------:|--------|---------|
+|         0 | BTC    | Bitcoin |
+|        60 | ETH    | Ether   |
+|       195 | TRX    | Tron    |
 
 Ref: https://github.com/satoshilabs/slips/blob/master/slip-0044.md
 
@@ -17,4 +19,3 @@ mvn clean
 mvn package
 java -jar target/dtc-crypto-cli-0.1.0-SNAPSHOT-jar-with-dependencies.jar
 ```
-
