@@ -25,8 +25,7 @@ public class Application {
 
     static final int ENTROPY_LENGTH = 32;
     static final int MNEMONICS_COUNT = 24;
-//    static final String SEED_PASSPHASE = "DTC";
-    static final String SEED_PASSPHASE = "mMpc]HXW&:$98;7<";
+    static final String SEED_PASSPHRASE = "kk^38k^XnV*d";
     static int TIMER = 3; // 0 < TIMER <= 9
     static int BATCH_SIZE = 10000;
 
@@ -175,7 +174,7 @@ public class Application {
         int addressIndexMax = intInput("Address index end", addressIndexMin, addressIndexMin + BATCH_SIZE);
 
         // 2-1 Generate
-        byte[] seed = BIP0039.genSeed(mnemonics, SEED_PASSPHASE);
+        byte[] seed = BIP0039.genSeed(mnemonics, SEED_PASSPHRASE);
         byte[] xprv_master = BIP0032.genHdMasterPrivateKey(seed);
 
         StringBuilder builder = new StringBuilder();
