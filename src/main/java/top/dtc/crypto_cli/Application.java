@@ -1,6 +1,8 @@
 package top.dtc.crypto_cli;
 
 import com.google.common.base.Strings;
+import top.dtc.crypto_cli.aws.DynamoDB;
+import top.dtc.crypto_cli.aws.domain.SubWallet;
 import top.dtc.crypto_cli.bip.BIP0032;
 import top.dtc.crypto_cli.bip.BIP0039;
 import top.dtc.crypto_cli.bip.BIP0044;
@@ -8,14 +10,9 @@ import top.dtc.crypto_cli.slip.SLIP0044;
 import top.dtc.crypto_cli.util.Base58;
 import top.dtc.crypto_cli.util.Sha256Hash;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Arrays;
-import java.util.Random;
-import java.util.Scanner;
+import java.util.*;
 import java.util.regex.Pattern;
 
 public class Application {
@@ -177,34 +174,32 @@ public class Application {
         byte[] seed = BIP0039.genSeed(mnemonics, SEED_PASSPHRASE);
         byte[] xprv_master = BIP0032.genHdMasterPrivateKey(seed);
 
-        StringBuilder builder = new StringBuilder();
         if (genBtn) {
-            deriveKeys(builder, xprv_master, SLIP0044.BTC, accountMin, accountMax, addressIndexMin, addressIndexMax);
+            deriveKeysThenUpload(xprv_master, SLIP0044.BTC, accountMin, accountMax, addressIndexMin, addressIndexMax);
         }
         if (genEth) {
-            deriveKeys(builder, xprv_master, SLIP0044.ETH, accountMin, accountMax, addressIndexMin, addressIndexMax);
+            deriveKeysThenUpload(xprv_master, SLIP0044.ETH, accountMin, accountMax, addressIndexMin, addressIndexMax);
         }
         if (genTrx) {
-            deriveKeys(builder, xprv_master, SLIP0044.TRX, accountMin, accountMax, addressIndexMin, addressIndexMax);
-        }
-        String result = builder.toString().trim();
-
-        // 2-2 Pause
-        beep();
-        System.out.println();
-        System.out.println("Keys generated, press [ENTER] to upload");
-        scanner.nextLine();
-
-        // 3-0 Write to file (TEMPORARY)
-        String userDir = System.getProperty("user.dir");
-        try {
-            Files.writeString(Path.of(userDir, "test.dtc"), result);
-        } catch (IOException e) {
-            e.printStackTrace();
+            deriveKeysThenUpload(xprv_master, SLIP0044.TRX, accountMin, accountMax, addressIndexMin, addressIndexMax);
         }
 
-        System.out.println();
-        System.out.println();
+//        // 2-2 Pause
+//        beep();
+//        System.out.println();
+//        System.out.println("Keys generated, press [ENTER] to upload");
+//        scanner.nextLine();
+//
+//        // 3-0 Write to file (TEMPORARY)
+//        String userDir = System.getProperty("user.dir");
+//        try {
+//            Files.writeString(Path.of(userDir, "test.dtc"), result);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        System.out.println();
+//        System.out.println();
         System.out.println("Upload successful");
     }
 
@@ -310,8 +305,7 @@ public class Application {
         correctionTape(1);
     }
 
-    private static void deriveKeys(
-            StringBuilder builder,
+    private static void deriveKeysThenUpload(
             byte[] xprv_master,
             int coinType,
             int accountMin,
@@ -319,6 +313,7 @@ public class Application {
             int addressIndexMin,
             int addressIndexMax
     ) {
+        List<SubWallet> list = new ArrayList<>();
         for (int account = accountMin; account <= accountMax; account++) {
             for (int addressIndex = addressIndexMin; addressIndex <= addressIndexMax; addressIndex++) {
                 byte[] xprv = BIP0044.derive(
@@ -331,17 +326,52 @@ public class Application {
                 byte[] xpub = BIP0032.genHdPublicKey(xprv);
                 byte[] prv = BIP0032.toPrivateKey(xprv);
                 byte[] pub = BIP0032.toPublicKey(xpub);
-                String line = String.format(
-                        "%d\t%d\t%d\t%s\t%s",
-                        coinType,
-                        account,
-                        addressIndex,
-                        Base58.encode(prv),
-                        Base58.encode(pub)
-                );
-                builder.append(line).append("\n");
+
+                SubWallet subWallet = new SubWallet();
+                subWallet.coinType = coinType;
+                subWallet.account = account;
+                subWallet.addressIndex = addressIndex;
+                subWallet.prvKey = Base58.encode(prv);
+                subWallet.pubKey = Base58.encode(pub);
+                list.add(subWallet);
             }
         }
+
+        DynamoDB.insert(list);
     }
+
+//    private static void deriveKeys(
+//            StringBuilder builder,
+//            byte[] xprv_master,
+//            int coinType,
+//            int accountMin,
+//            int accountMax,
+//            int addressIndexMin,
+//            int addressIndexMax
+//    ) {
+//        for (int account = accountMin; account <= accountMax; account++) {
+//            for (int addressIndex = addressIndexMin; addressIndex <= addressIndexMax; addressIndex++) {
+//                byte[] xprv = BIP0044.derive(
+//                        xprv_master,
+//                        coinType,
+//                        account,
+//                        true,
+//                        addressIndex
+//                );
+//                byte[] xpub = BIP0032.genHdPublicKey(xprv);
+//                byte[] prv = BIP0032.toPrivateKey(xprv);
+//                byte[] pub = BIP0032.toPublicKey(xpub);
+//                String line = String.format(
+//                        "%d\t%d\t%d\t%s\t%s",
+//                        coinType,
+//                        account,
+//                        addressIndex,
+//                        Base58.encode(prv),
+//                        Base58.encode(pub)
+//                );
+//                builder.append(line).append("\n");
+//            }
+//        }
+//    }
 
 }

@@ -12,6 +12,17 @@ Ref: https://github.com/satoshilabs/slips/blob/master/slip-0044.md
 
 ## Usage
 
+### System Environment Variables
+
+```
+AWS_KMS_KEY_ID
+AWS_REGION
+ACCESS_KEY_ID
+AWS_SECRET_ACCESS_KEY
+```
+
+### Startup
+
 ! Do not use IDE to test, command ascii will not work properly.
 
 ```shell
