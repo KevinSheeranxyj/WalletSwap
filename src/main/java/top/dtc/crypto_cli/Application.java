@@ -337,7 +337,7 @@ public class Application {
             }
         }
 
-        DynamoDB.insert(list);
+        DynamoDB.save(list);
     }
 
 //    private static void deriveKeys(

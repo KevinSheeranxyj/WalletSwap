@@ -10,13 +10,29 @@
 
 Ref: https://github.com/satoshilabs/slips/blob/master/slip-0044.md
 
+## AWS Setup
+
+### DynamoDB Table
+
+```
+Name: SubWallet
+Primary key: id (String)
+```
+
+### KMS
+
+```
+Key type: Symmetric
+Alias: crypto-cli
+```
+
 ## Usage
 
 ### System Environment Variables
 
 ```
 AWS_KMS_KEY_ID
-AWS_REGION
+AWS_REGION=ap-southeast-1
 ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY
 ```

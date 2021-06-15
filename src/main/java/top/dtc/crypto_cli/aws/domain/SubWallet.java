@@ -1,15 +1,26 @@
 package top.dtc.crypto_cli.aws.domain;
 
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 
 @DynamoDbBean
 public class SubWallet {
 
+    public String id;
     public Integer coinType;
     public Integer account;
     public Integer addressIndex;
     public String prvKey;
     public String pubKey;
+
+    @DynamoDbPartitionKey
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public Integer getCoinType() {
         return coinType;

@@ -1,17 +1,21 @@
 package top.dtc.crypto_cli.aws;
 
+import com.google.common.io.BaseEncoding;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.BatchWriteItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.WriteBatch;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.DecryptRequest;
+import software.amazon.awssdk.services.kms.model.DecryptResponse;
 import software.amazon.awssdk.services.kms.model.EncryptRequest;
 import software.amazon.awssdk.services.kms.model.EncryptResponse;
 import top.dtc.crypto_cli.aws.domain.SubWallet;
@@ -44,12 +48,13 @@ public class DynamoDB {
             .build();
     private static final DynamoDbTable<SubWallet> table = enhancedClient.table("SubWallet", TableSchema.fromBean(SubWallet.class));
 
-    public static void insert(List<SubWallet> subWallets) {
+    public static void save(List<SubWallet> subWallets) {
         WriteBatch.Builder<SubWallet> writeBatchBuilder = WriteBatch
                 .builder(SubWallet.class)
                 .mappedTableResource(table);
 
         subWallets.forEach(subWallet -> {
+            subWallet.id = id(subWallet.coinType, subWallet.account, subWallet.addressIndex);
             subWallet.prvKey = encrypt(subWallet.prvKey);
             subWallet.pubKey = encrypt(subWallet.pubKey);
             writeBatchBuilder.addPutItem(subWallet);
@@ -62,15 +67,44 @@ public class DynamoDB {
         enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);
     }
 
+    public static SubWallet get(int coinType, int account, int addressIndex) {
+        Key key = Key.builder()
+                .partitionValue(id(999, 123, 456))
+                .build();
+
+        SubWallet item = table.getItem(key);
+        item.prvKey = decrypt(item.prvKey);
+        item.pubKey = decrypt(item.pubKey);
+
+        return item;
+    }
+
     private static String encrypt(String data) {
         SdkBytes myBytes = SdkBytes.fromUtf8String(data);
-        EncryptRequest encryptRequest = EncryptRequest.builder()
+        EncryptRequest encryptRequest = EncryptRequest
+                .builder()
                 .keyId(KMS_KEY_ID)
                 .plaintext(myBytes)
                 .build();
         EncryptResponse response = kmsClient.encrypt(encryptRequest);
         SdkBytes encryptedData = response.ciphertextBlob();
-        return encryptedData.asUtf8String();
+        return BaseEncoding.base64().encode(encryptedData.asByteArray());
+    }
+
+    private static String decrypt(String data) {
+        SdkBytes sdkBytes = SdkBytes.fromByteArray(BaseEncoding.base64().decode(data));
+        DecryptRequest decryptRequest = DecryptRequest
+                .builder()
+                .keyId(KMS_KEY_ID)
+                .ciphertextBlob(sdkBytes)
+                .build();
+        DecryptResponse response = kmsClient.decrypt(decryptRequest);
+        SdkBytes plaintext = response.plaintext();
+        return plaintext.asUtf8String();
+    }
+
+    private static String id(int coinType, int account, int addressIndex) {
+        return String.format("%d_%d_%d", coinType, account, addressIndex);
     }
 
 }
