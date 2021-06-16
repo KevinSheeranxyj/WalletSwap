@@ -26,7 +26,7 @@ public class DynamoDB {
 
     private static final String KMS_KEY_ID = System.getenv("AWS_KMS_KEY_ID");
     private static final String REGION = System.getenv("AWS_REGION");
-    private static final String ACCESS_KEY_ID = System.getenv("ACCESS_KEY_ID");
+    private static final String ACCESS_KEY_ID = System.getenv("AWS_ACCESS_KEY_ID");
     private static final String SECRET_ACCESS_KEY = System.getenv("AWS_SECRET_ACCESS_KEY");
 
     private static final AwsBasicCredentials awsBasicCredentials = AwsBasicCredentials.create(ACCESS_KEY_ID, SECRET_ACCESS_KEY);

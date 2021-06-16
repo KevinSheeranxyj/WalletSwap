@@ -33,7 +33,7 @@ Alias: crypto-cli
 ```
 AWS_KMS_KEY_ID
 AWS_REGION=ap-southeast-1
-ACCESS_KEY_ID
+AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY
 ```
 
