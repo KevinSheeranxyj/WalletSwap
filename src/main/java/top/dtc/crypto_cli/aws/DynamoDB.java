@@ -1,5 +1,6 @@
 package top.dtc.crypto_cli.aws;
 
+import com.google.common.collect.Iterators;
 import com.google.common.io.BaseEncoding;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -49,22 +50,24 @@ public class DynamoDB {
     private static final DynamoDbTable<SubWallet> table = enhancedClient.table("SubWallet", TableSchema.fromBean(SubWallet.class));
 
     public static void save(List<SubWallet> subWallets) {
-        WriteBatch.Builder<SubWallet> writeBatchBuilder = WriteBatch
-                .builder(SubWallet.class)
-                .mappedTableResource(table);
+        Iterators.partition(subWallets.iterator(), 20).forEachRemaining(list -> {
+            WriteBatch.Builder<SubWallet> writeBatchBuilder = WriteBatch
+                    .builder(SubWallet.class)
+                    .mappedTableResource(table);
 
-        subWallets.forEach(subWallet -> {
-            subWallet.id = id(subWallet.coinType, subWallet.account, subWallet.addressIndex);
-            subWallet.prvKey = encrypt(subWallet.prvKey);
-            subWallet.pubKey = encrypt(subWallet.pubKey);
-            writeBatchBuilder.addPutItem(subWallet);
+            list.forEach(subWallet -> {
+                subWallet.id = id(subWallet.coinType, subWallet.account, subWallet.addressIndex);
+                subWallet.prvKey = encrypt(subWallet.prvKey);
+                subWallet.pubKey = encrypt(subWallet.pubKey);
+                writeBatchBuilder.addPutItem(subWallet);
+            });
+
+            BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest = BatchWriteItemEnhancedRequest
+                    .builder()
+                    .writeBatches(writeBatchBuilder.build())
+                    .build();
+            enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);
         });
-
-        BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest = BatchWriteItemEnhancedRequest
-                .builder()
-                .writeBatches(writeBatchBuilder.build())
-                .build();
-        enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);
     }
 
     public static SubWallet get(int coinType, int account, int addressIndex) {
