@@ -1,6 +1,7 @@
 package top.dtc.crypto_cli;
 
 import com.google.common.base.Strings;
+import com.google.common.io.BaseEncoding;
 import top.dtc.crypto_cli.aws.DynamoDB;
 import top.dtc.crypto_cli.aws.domain.SubWallet;
 import top.dtc.crypto_cli.bip.BIP0032;
@@ -331,8 +332,8 @@ public class Application {
                 subWallet.coinType = coinType;
                 subWallet.account = account;
                 subWallet.addressIndex = addressIndex;
-                subWallet.prvKey = Base58.encode(prv);
-                subWallet.pubKey = Base58.encode(pub);
+                subWallet.prvKey = BaseEncoding.base16().encode(prv);
+                subWallet.pubKey = BaseEncoding.base16().encode(pub);
                 list.add(subWallet);
             }
         }

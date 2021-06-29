@@ -8,6 +8,7 @@ import org.apache.commons.codec.digest.HmacUtils;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 import org.bouncycastle.math.ec.ECPoint;
+import top.dtc.crypto_cli.util.Base58;
 import top.dtc.crypto_cli.util.Hash160;
 import top.dtc.crypto_cli.util.Sha256Hash;
 
@@ -118,6 +119,17 @@ public class BIP0032 {
 
     public static byte[] toPublicKey(byte[] hdPublicKey) {
         return Arrays.copyOfRange(hdPublicKey, 45, 78);
+    }
+
+    public static void main(String[] args) {
+        byte[] prv = BaseEncoding.base16().decode("0C28FCA386C7A227600B2FE50B7CAE11EC86D3BF1FBE471BE89827E19D72AA1D");
+        ECPoint point = CURVE.getG().multiply(new BigInteger(1, prv));
+        byte[] publicKey = point.getEncoded(true);
+        System.out.println(BaseEncoding.base16().encode(publicKey));
+        System.out.println(BaseEncoding.base16().encode(Base58.decode("KxsBRCHF52joYiQibiQZkFXtDtdYPPqd5BzDWrkphfC6DW2wy9Xq")));
+
+        System.out.println(BaseEncoding.base16().encode(toPrivateKey(Base58.decode("xprv9zZUQ7aGKxuzTxBadprbkUWvBUMyhW4rj7GQcjqdf1d2qtEFQHdsSBgbNNzeLdThhvcUgouVGhQpuGoYHSNy8ifuvSYj6cGDz83ac8pZc1F"))));
+        System.out.println(BaseEncoding.base16().encode(toPublicKey(Base58.decode("xpub6DYpod7AALUHgSG3jrPc7cTejWCU6xni6LC1R8FFDMA1igZPwpx7yz15DhAc1qeoax8Q5dvUUdxk4xKPtC5jibAZwXRh7eQKmwPLzBqrDkA"))));
     }
 
 //    public static byte[] genHdPublicKeyBySeed(byte[] seed) {
