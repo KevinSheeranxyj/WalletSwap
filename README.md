@@ -31,10 +31,11 @@ Alias: crypto-cli
 ### System Environment Variables
 
 ```
-AWS_KMS_KEY_ID
 AWS_REGION=ap-southeast-1
 AWS_ACCESS_KEY_ID
 AWS_SECRET_ACCESS_KEY
+KMS_CRYPTO_KEY_ID
+DYNAMO_DB_SUB_WALLET_TABLE_NAME
 ```
 
 ### Startup

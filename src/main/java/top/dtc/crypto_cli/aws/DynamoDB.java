@@ -25,10 +25,11 @@ import java.util.List;
 
 public class DynamoDB {
 
-    private static final String KMS_KEY_ID = System.getenv("AWS_KMS_KEY_ID");
+    private static final String KMS_CRYPTO_KEY_ID = System.getenv("KMS_CRYPTO_KEY_ID");
     private static final String REGION = System.getenv("AWS_REGION");
     private static final String ACCESS_KEY_ID = System.getenv("AWS_ACCESS_KEY_ID");
     private static final String SECRET_ACCESS_KEY = System.getenv("AWS_SECRET_ACCESS_KEY");
+    private static final String DYNAMO_DB_SUB_WALLET_TABLE_NAME = System.getenv("DYNAMO_DB_SUB_WALLET_TABLE_NAME");
 
     private static final AwsBasicCredentials awsBasicCredentials = AwsBasicCredentials.create(ACCESS_KEY_ID, SECRET_ACCESS_KEY);
     private static final AwsCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(awsBasicCredentials);
@@ -47,7 +48,7 @@ public class DynamoDB {
             .builder()
             .dynamoDbClient(dynamoDbClient)
             .build();
-    private static final DynamoDbTable<SubWallet> table = enhancedClient.table("SubWallet", TableSchema.fromBean(SubWallet.class));
+    private static final DynamoDbTable<SubWallet> table = enhancedClient.table(DYNAMO_DB_SUB_WALLET_TABLE_NAME, TableSchema.fromBean(SubWallet.class));
 
     public static void save(List<SubWallet> subWallets) {
         Iterators.partition(subWallets.iterator(), 20).forEachRemaining(list -> {
@@ -86,7 +87,7 @@ public class DynamoDB {
         SdkBytes myBytes = SdkBytes.fromUtf8String(data);
         EncryptRequest encryptRequest = EncryptRequest
                 .builder()
-                .keyId(KMS_KEY_ID)
+                .keyId(KMS_CRYPTO_KEY_ID)
                 .plaintext(myBytes)
                 .build();
         EncryptResponse response = kmsClient.encrypt(encryptRequest);
@@ -98,7 +99,7 @@ public class DynamoDB {
         SdkBytes sdkBytes = SdkBytes.fromByteArray(BaseEncoding.base64().decode(data));
         DecryptRequest decryptRequest = DecryptRequest
                 .builder()
-                .keyId(KMS_KEY_ID)
+                .keyId(KMS_CRYPTO_KEY_ID)
                 .ciphertextBlob(sdkBytes)
                 .build();
         DecryptResponse response = kmsClient.decrypt(decryptRequest);

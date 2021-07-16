@@ -65,10 +65,12 @@ public class ForApiTest {
         byte[] xprv_60_761273_0_0 = BIP0044.derive(xprv_master, SLIP0044.ETH, 761273, true, 0);
         byte[] xpub_60_761273_0_0 = BIP0032.genHdPublicKey(xprv_60_761273_0_0);
         byte[] pub_60_761273_0_0 = BIP0032.toPublicKey(xpub_60_761273_0_0);
+        byte[] prv_60_761273_0_0 = BIP0032.toPrivateKey(xprv_60_761273_0_0);
         assertEquals("xpub6FsM36iUKuQBkcnKpNy84yAE92hqAqiruFqDpPMALj1gMu9auS3wjjFR1moGApANA4jdXzZ6eZ1vGHhpwNUyvkiPudz9gVN7UdyUpFW7RGM", Base58.encode(xpub_60_761273_0_0));
         assertEquals("1Dd1YEtn5V7TwgzAkJPX4NXM4MSrMniKDP", Base58.encode(BIP0013.genAddress(pub_60_761273_0_0)));
         assertEquals("02FBADA42F5B6BCB8CAFFA188FD544D205B87D588246BE076CCBA7EB845BC26FDF", BaseEncoding.base16().encode(pub_60_761273_0_0));
         assertEquals("Kyf6TjEZoBffTyEThFzLy5pEwoRepsNEjGupC5ThNjhjLPiuaU4i", Base58.encode(BIP.wif(BIP0032.toPrivateKey(xprv_60_761273_0_0))));
+        assertEquals("48BBBB76F8E5A972BCCAB9DBA833361211D9F51F1AB33566CFE6D2097CFD4DC0", BaseEncoding.base16().encode(prv_60_761273_0_0));
 
         byte[] xprv_60_761273_0_516717 = BIP0044.derive(xprv_master, SLIP0044.ETH, 761273, true, 516717);
         byte[] xpub_60_761273_0_516717 = BIP0032.genHdPublicKey(xprv_60_761273_0_516717);
@@ -79,6 +81,10 @@ public class ForApiTest {
         assertEquals("0360D38882F743C490AA9A825882BB83045A84753A3E52047BFC7C159F582FFA64", BaseEncoding.base16().encode(pub_60_761273_0_516717));
         assertEquals("KycGaonAshyFZZqCCDtANezFHEq9Wxgae1vmNgMBSmB1yUkgimte", Base58.encode(BIP.wif(prv_60_761273_0_516717)));
         assertEquals("4747A098B03A770201CA2819EA5DDA99CC7A06ED6F364050DD97D56C3E139EE2", BaseEncoding.base16().encode(prv_60_761273_0_516717));
+
+        byte[] xprv_60_123_0_0 = BIP0044.derive(xprv_master, SLIP0044.ETH, 123, true, 0);
+        byte[] prv_60_123_0_0 = BIP0032.toPrivateKey(xprv_60_123_0_0);
+        assertEquals("3A13A45CEF13FADD19655D5ED0C91E421C4D47A4A3E7A04D9BEADF0EEF7AA492", BaseEncoding.base16().encode(prv_60_123_0_0));
 
         byte[] xprv_196_761273_0_0 = BIP0044.derive(xprv_master, SLIP0044.TRX + 1, 761273, true, 0);
         byte[] xpub_196_761273_0_0 = BIP0032.genHdPublicKey(xprv_196_761273_0_0);
