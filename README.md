@@ -15,7 +15,7 @@ Ref: https://github.com/satoshilabs/slips/blob/master/slip-0044.md
 ### DynamoDB Table
 
 ```
-Name: SubWallet
+Name (Sample): SubWallet
 Primary key: id (String)
 ```
 
@@ -23,13 +23,14 @@ Primary key: id (String)
 
 ```
 Key type: Symmetric
-Alias: crypto-cli
+Alias (Sample): crypto-cli
 ```
 
 ## Usage
 
-### System Environment Variables
+### Environment Variables
 
+Save the following information into the file which path is: `{work_dir}/AWS.env`
 ```
 AWS_REGION=ap-southeast-1
 AWS_ACCESS_KEY_ID
