@@ -1,5 +1,6 @@
 package top.dtc.crypto_cli.aws;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Iterators;
 import com.google.common.io.BaseEncoding;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -21,15 +22,41 @@ import software.amazon.awssdk.services.kms.model.EncryptRequest;
 import software.amazon.awssdk.services.kms.model.EncryptResponse;
 import top.dtc.crypto_cli.aws.domain.SubWallet;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 public class DynamoDB {
 
-    private static final String KMS_CRYPTO_KEY_ID = System.getenv("KMS_CRYPTO_KEY_ID");
-    private static final String REGION = System.getenv("AWS_REGION");
-    private static final String ACCESS_KEY_ID = System.getenv("AWS_ACCESS_KEY_ID");
-    private static final String SECRET_ACCESS_KEY = System.getenv("AWS_SECRET_ACCESS_KEY");
-    private static final String DYNAMO_DB_SUB_WALLET_TABLE_NAME = System.getenv("DYNAMO_DB_SUB_WALLET_TABLE_NAME");
+    private static final String REGION;
+    private static final String ACCESS_KEY_ID;
+    private static final String SECRET_ACCESS_KEY;
+    private static final String KMS_CRYPTO_KEY_ID;
+    private static final String DYNAMO_DB_SUB_WALLET_TABLE_NAME;
+
+    static {
+        Map<String, String> map = new HashMap<>();
+        try {
+            map = Files.readAllLines(Paths.get("AWS.env")).stream()
+                    .map(line -> line.split("="))
+                    .collect(Collectors.toMap(seg -> seg[0], seg -> seg[1]));
+        } catch (IOException e) {
+            e.printStackTrace();
+
+            System.out.println();
+            System.out.println("!! Env-vars file ({work_dir}/AWS.env) read failed, program will exit");
+            System.exit(-1);
+        }
+        REGION = map.get("AWS_REGION");
+        ACCESS_KEY_ID = map.get("AWS_ACCESS_KEY_ID");
+        SECRET_ACCESS_KEY = map.get("AWS_SECRET_ACCESS_KEY");
+        KMS_CRYPTO_KEY_ID = map.get("KMS_CRYPTO_KEY_ID");
+        DYNAMO_DB_SUB_WALLET_TABLE_NAME = map.get("DYNAMO_DB_SUB_WALLET_TABLE_NAME");
+    }
 
     private static final AwsBasicCredentials awsBasicCredentials = AwsBasicCredentials.create(ACCESS_KEY_ID, SECRET_ACCESS_KEY);
     private static final AwsCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(awsBasicCredentials);
@@ -49,6 +76,14 @@ public class DynamoDB {
             .dynamoDbClient(dynamoDbClient)
             .build();
     private static final DynamoDbTable<SubWallet> table = enhancedClient.table(DYNAMO_DB_SUB_WALLET_TABLE_NAME, TableSchema.fromBean(SubWallet.class));
+
+    public static String config() {
+        return "AWS_REGION=" + REGION + "\n" +
+                "AWS_ACCESS_KEY_ID=" + ACCESS_KEY_ID + "\n" +
+                "AWS_SECRET_ACCESS_KEY=" + Strings.repeat("*", SECRET_ACCESS_KEY.length()) + "\n" +
+                "KMS_CRYPTO_KEY_ID=" + Strings.repeat("*", KMS_CRYPTO_KEY_ID.length()) + "\n" +
+                "DYNAMO_DB_SUB_WALLET_TABLE_NAME=" + DYNAMO_DB_SUB_WALLET_TABLE_NAME;
+    }
 
     public static void save(List<SubWallet> subWallets) {
         Iterators.partition(subWallets.iterator(), 20).forEachRemaining(list -> {
@@ -73,7 +108,7 @@ public class DynamoDB {
 
     public static SubWallet get(int coinType, int account, int addressIndex) {
         Key key = Key.builder()
-                .partitionValue(id(999, 123, 456))
+                .partitionValue(id(coinType, account, addressIndex))
                 .build();
 
         SubWallet item = table.getItem(key);

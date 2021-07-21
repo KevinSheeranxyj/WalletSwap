@@ -11,6 +11,7 @@ import top.dtc.crypto_cli.slip.SLIP0044;
 import top.dtc.crypto_cli.util.Base58;
 import top.dtc.crypto_cli.util.Sha256Hash;
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
@@ -44,7 +45,7 @@ public class Application {
         System.out.println("Thanks for using");
     }
 
-    public static void menu() throws InterruptedException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public static void menu() throws InterruptedException, NoSuchAlgorithmException, InvalidKeySpecException, IOException {
         System.out.println("\n" +
                 "                                                                                                                                                               \n" +
                 "88888888ba,  888888888888  ,ad8888ba,        ,ad8888ba,   88888888ba  8b        d8  88888888ba  888888888888  ,ad8888ba,         ,ad8888ba,   88           88  \n" +
@@ -57,6 +58,11 @@ public class Application {
                 "88888888Y\"'       88       `\"Y8888Y\"'        `\"Y8888Y\"'   88      `8b      88       88               88       `\"Y8888Y\"'         `\"Y8888Y\"'   88888888888  88  \n" +
                 "                                                                                                                                                               \n" +
                 "                                                                                                                                                               \n");
+
+        System.out.println("== AWS ENVIRONMENT VARIABLES ==");
+        System.out.println(DynamoDB.config());
+        System.out.println();
+        System.out.println();
 
         System.out.println("  1) Generate Mnemonics");
         System.out.println("  2) Derive HD Wallets");
