@@ -77,12 +77,37 @@ public class DynamoDB {
             .build();
     private static final DynamoDbTable<SubWallet> table = enhancedClient.table(DYNAMO_DB_SUB_WALLET_TABLE_NAME, TableSchema.fromBean(SubWallet.class));
 
-    public static String config() {
-        return "AWS_REGION=" + REGION + "\n" +
+    public static void printAndTest() {
+        System.out.println("AWS_REGION=" + REGION + "\n" +
                 "AWS_ACCESS_KEY_ID=" + ACCESS_KEY_ID + "\n" +
                 "AWS_SECRET_ACCESS_KEY=" + Strings.repeat("*", SECRET_ACCESS_KEY.length()) + "\n" +
                 "KMS_CRYPTO_KEY_ID=" + Strings.repeat("*", KMS_CRYPTO_KEY_ID.length()) + "\n" +
-                "DYNAMO_DB_SUB_WALLET_TABLE_NAME=" + DYNAMO_DB_SUB_WALLET_TABLE_NAME;
+                "DYNAMO_DB_SUB_WALLET_TABLE_NAME=" + DYNAMO_DB_SUB_WALLET_TABLE_NAME);
+
+        try {
+            Key key = Key.builder()
+                    .partitionValue(id(0, 0, 0))
+                    .build();
+            SubWallet item = table.getItem(key);
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            System.out.println();
+            System.out.println("!! AWS DynamoDB test failed, program will exit");
+            System.exit(-1);
+        }
+        try {
+            encrypt("test");
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            System.out.println();
+            System.out.println("!! AWS KMS test failed, program will exit");
+            System.exit(-1);
+        }
+
+        System.out.println();
+        System.out.println("AWS Functions test successful");
     }
 
     public static void save(List<SubWallet> subWallets) {

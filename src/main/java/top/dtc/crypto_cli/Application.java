@@ -59,16 +59,12 @@ public class Application {
                 "                                                                                                                                                               \n" +
                 "                                                                                                                                                               \n");
 
-        System.out.println("== AWS ENVIRONMENT VARIABLES ==");
-        System.out.println(DynamoDB.config());
-        System.out.println();
-        System.out.println();
-
         System.out.println("  1) Generate Mnemonics");
         System.out.println("  2) Derive HD Wallets");
+        System.out.println("  3) Test AWS Functions");
         System.out.println("  0) Quit");
         System.out.println();
-        int method = intInput("Please select method", 0, 2);
+        int method = intInput("Please select method", 0, 3);
 
 //        String method = scanner.nextLine();
 //        String method = "2";
@@ -83,6 +79,9 @@ public class Application {
                 break;
             case 2:
                 deriveWallets();
+                break;
+            case 3:
+                testAws();
                 break;
             default:
                 System.out.println("Wrong input, program will quit");
@@ -148,7 +147,7 @@ public class Application {
         System.out.println("== Please input mnemonics hash ==");
         String mnemonicsHashStr = maskedInput();
 
-        // 1-1 Test
+        // 1-1 Test & generate entropy
         if (mnemonicsHashStr.length() != 8) {
             throw new RuntimeException("Invalid mnemonics hash");
         }
@@ -177,19 +176,42 @@ public class Application {
         int addressIndexMin = intInput("Address index start", 0, Integer.MAX_VALUE);
         int addressIndexMax = intInput("Address index end", addressIndexMin, addressIndexMin + BATCH_SIZE);
 
-        // 2-1 Generate
+        // 2-1 Generate master key
         byte[] seed = BIP0039.genSeed(mnemonics, SEED_PASSPHRASE);
         byte[] xprv_master = BIP0032.genHdMasterPrivateKey(seed);
 
+        List<SubWallet> list = new ArrayList<>();
+
         if (genBtn) {
-            deriveKeysThenUpload(xprv_master, SLIP0044.BTC, accountMin, accountMax, addressIndexMin, addressIndexMax);
+            list.addAll(deriveKeys(xprv_master, SLIP0044.BTC, accountMin, accountMax, addressIndexMin, addressIndexMax));
         }
         if (genEth) {
-            deriveKeysThenUpload(xprv_master, SLIP0044.ETH, accountMin, accountMax, addressIndexMin, addressIndexMax);
+            list.addAll(deriveKeys(xprv_master, SLIP0044.ETH, accountMin, accountMax, addressIndexMin, addressIndexMax));
         }
         if (genTrx) {
-            deriveKeysThenUpload(xprv_master, SLIP0044.TRX, accountMin, accountMax, addressIndexMin, addressIndexMax);
+            list.addAll(deriveKeys(xprv_master, SLIP0044.TRX, accountMin, accountMax, addressIndexMin, addressIndexMax));
         }
+
+        // 2-2 Cleanup memory data
+        mnemonicsPart1Str = null;
+        mnemonicsPart2Str = null;
+        mnemonicsHashStr = null;
+        Arrays.fill(mnemonics, "");
+        Arrays.fill(entropy, (byte) 0);
+        Arrays.fill(entropyHash, (byte) 0);
+        mnemonicsHashStrToCheck = null;
+        Arrays.fill(seed, (byte) 0);
+        Arrays.fill(xprv_master, (byte) 0);
+
+        // 3-0 Notice before upload
+
+        System.out.println("== Press ENTER to upload");
+        beep();
+        scanner.nextLine();
+
+        // 3-1 Upload
+
+//        DynamoDB.save(list);
 
 //        // 2-2 Pause
 //        beep();
@@ -208,6 +230,13 @@ public class Application {
 //        System.out.println();
 //        System.out.println();
         System.out.println("Upload successful");
+    }
+
+    private static void testAws() {
+        System.out.println("== AWS ENVIRONMENT VARIABLES ==");
+        DynamoDB.printAndTest();
+        System.out.println();
+        System.out.println();
     }
 
     private static String maskedInput() throws InterruptedException {
@@ -312,7 +341,7 @@ public class Application {
         correctionTape(1);
     }
 
-    private static void deriveKeysThenUpload(
+    private static List<SubWallet> deriveKeys(
             byte[] xprv_master,
             int coinType,
             int accountMin,
@@ -344,7 +373,7 @@ public class Application {
             }
         }
 
-        DynamoDB.save(list);
+        return list;
     }
 
 //    private static void deriveKeys(
