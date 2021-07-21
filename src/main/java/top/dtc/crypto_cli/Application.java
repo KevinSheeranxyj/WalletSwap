@@ -205,13 +205,15 @@ public class Application {
 
         // 3-0 Notice before upload
 
-        System.out.println("== Press ENTER to upload");
+        System.out.println();
+        System.out.println();
+        System.out.println("== Press ENTER to encrypt & upload");
         beep();
         scanner.nextLine();
 
-        // 3-1 Upload
+        // 3-1 Encrypt & Upload
 
-//        DynamoDB.save(list);
+        DynamoDB.save(list);
 
 //        // 2-2 Pause
 //        beep();
