@@ -1,7 +1,7 @@
 package top.dtc.crypto_cli.aws;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
 import com.google.common.io.BaseEncoding;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class DynamoDB {
@@ -111,7 +112,10 @@ public class DynamoDB {
     }
 
     public static void save(List<SubWallet> subWallets) {
-        Iterators.partition(subWallets.iterator(), 20).forEachRemaining(list -> {
+        AtomicInteger i = new AtomicInteger();
+        List<List<SubWallet>> lists = Lists.partition(subWallets, 20);
+        lists.parallelStream().forEach(list -> {
+            System.out.println("Encrypting & uploading partition " + i.incrementAndGet() + " / " + lists.size());
             WriteBatch.Builder<SubWallet> writeBatchBuilder = WriteBatch
                     .builder(SubWallet.class)
                     .mappedTableResource(table);
