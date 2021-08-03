@@ -3,11 +3,13 @@ package top.dtc.crypto_cli.aws;
 import com.google.common.collect.Lists;
 import top.dtc.crypto_cli.aws.domain.SubWallet;
 
+import java.util.concurrent.ExecutionException;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class DynamoDBTest {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
         SubWallet subWallet = new SubWallet();
         subWallet.coinType = 999;
         subWallet.account = 123;

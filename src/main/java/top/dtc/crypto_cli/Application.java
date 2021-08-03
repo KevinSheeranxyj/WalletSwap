@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.regex.Pattern;
 
 public class Application {
@@ -45,7 +46,7 @@ public class Application {
         System.out.println("Thanks for using");
     }
 
-    public static void menu() throws InterruptedException, NoSuchAlgorithmException, InvalidKeySpecException, IOException {
+    public static void menu() throws InterruptedException, NoSuchAlgorithmException, InvalidKeySpecException, IOException, ExecutionException {
         System.out.println("\n" +
                 "                                                                                                                                                               \n" +
                 "88888888ba,  888888888888  ,ad8888ba,        ,ad8888ba,   88888888ba  8b        d8  88888888ba  888888888888  ,ad8888ba,         ,ad8888ba,   88           88  \n" +
@@ -130,7 +131,7 @@ public class Application {
         print(entropyHashStr);
     }
 
-    private static void deriveWallets() throws InterruptedException, NoSuchAlgorithmException, InvalidKeySpecException {
+    private static void deriveWallets() throws InterruptedException, NoSuchAlgorithmException, InvalidKeySpecException, ExecutionException {
         // 0-0 Input rules
         System.out.println("== Input rules ==");
         System.out.println();

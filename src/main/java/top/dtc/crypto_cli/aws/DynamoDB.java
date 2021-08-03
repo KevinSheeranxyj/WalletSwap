@@ -25,6 +25,8 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -108,28 +110,38 @@ public class DynamoDB {
         System.out.println("AWS Functions test successful");
     }
 
-    public static void save(List<SubWallet> subWallets) {
+    public static void save(List<SubWallet> subWallets) throws ExecutionException, InterruptedException {
         AtomicInteger i = new AtomicInteger();
         List<List<SubWallet>> lists = Lists.partition(subWallets, 20);
-        lists.parallelStream().forEach(list -> {
-            System.out.println("Encrypting & uploading partition " + i.incrementAndGet() + " / " + lists.size());
-            WriteBatch.Builder<SubWallet> writeBatchBuilder = WriteBatch
-                    .builder(SubWallet.class)
-                    .mappedTableResource(table);
+        ForkJoinPool customThreadPool = new ForkJoinPool(10);
+        customThreadPool.submit(() ->
+                lists.parallelStream().forEach(list -> {
+                    System.out.println("Encrypting & uploading partition " + i.incrementAndGet() + " / " + lists.size());
+                    WriteBatch.Builder<SubWallet> writeBatchBuilder = WriteBatch
+                            .builder(SubWallet.class)
+                            .mappedTableResource(table);
 
-            list.forEach(subWallet -> {
-                subWallet.id = id(subWallet.coinType, subWallet.account, subWallet.addressIndex);
-                subWallet.prvKey = encrypt(subWallet.prvKey);
-                subWallet.pubKey = encrypt(subWallet.pubKey);
-                writeBatchBuilder.addPutItem(subWallet);
-            });
+                    list.forEach(subWallet -> {
+                        subWallet.id = id(subWallet.coinType, subWallet.account, subWallet.addressIndex);
+                        subWallet.prvKey = encrypt(subWallet.prvKey);
+                        subWallet.pubKey = encrypt(subWallet.pubKey);
+                        writeBatchBuilder.addPutItem(subWallet);
+                    });
 
-            BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest = BatchWriteItemEnhancedRequest
-                    .builder()
-                    .writeBatches(writeBatchBuilder.build())
-                    .build();
-            enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);
-        });
+                    BatchWriteItemEnhancedRequest batchWriteItemEnhancedRequest = BatchWriteItemEnhancedRequest
+                            .builder()
+                            .writeBatches(writeBatchBuilder.build())
+                            .build();
+                    enhancedClient.batchWriteItem(batchWriteItemEnhancedRequest);
+
+                    try {
+                        Thread.sleep(10000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                })
+        ).get();
+        customThreadPool.shutdown();
     }
 
     public static SubWallet get(int coinType, int account, int addressIndex) {
