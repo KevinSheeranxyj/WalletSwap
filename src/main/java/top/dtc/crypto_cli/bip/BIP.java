@@ -1,7 +1,6 @@
 package top.dtc.crypto_cli.bip;
 
 
-import com.google.common.primitives.Bytes;
 import top.dtc.crypto_cli.util.Base58;
 import top.dtc.crypto_cli.wif.WIF;
 
@@ -35,8 +34,8 @@ public class BIP {
         return Base58.encode(bytes);
     }
 
-    public static byte[] wif(byte[] privateKey) {
-        return WIF.encode(Bytes.concat(privateKey, BIP0178.SPEC.P2PKH_COMPRESSED)); // Parameterize the spec?
+    public static byte[] wif(byte[] privateKey, boolean testnet) {
+        return WIF.encode(privateKey, testnet);
     }
 
 }

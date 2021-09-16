@@ -47,6 +47,11 @@ public class BIP0032 {
         return Sha256Hash.appendFingerprint(data);
     }
 
+    public static byte[] toPublicKeyFromPrivateKey(byte[] privateKey) {
+        ECPoint point = CURVE.getG().multiply(new BigInteger(1, privateKey));
+        return point.getEncoded(true);
+    }
+
     public static byte[] genHdPublicKey(byte[] hdPrivateKey) {
         byte[] depth = new byte[] {hdPrivateKey[4]};
         byte[] parentFingerprint = Arrays.copyOfRange(hdPrivateKey, 5, 9);
