@@ -31,7 +31,7 @@ class BIP0039Test {
 
     // cases: https://github.com/trezor/python-mnemonic/blob/ad06157e21fc2c2145c726efbfdcf69df1350061/vectors.json
     @Test
-    public void testJSON() throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public void test() throws NoSuchAlgorithmException, InvalidKeySpecException {
         String[][] data = new String[][]{
                 new String[]{
                         "00000000000000000000000000000000",

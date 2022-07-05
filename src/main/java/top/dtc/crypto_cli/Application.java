@@ -169,7 +169,8 @@ public class Application {
         boolean genBtn = booleanInput("Generate BTC?");
         boolean genEth = booleanInput("Generate ETH?");
         boolean genTrx = booleanInput("Generate TRX?");
-        if (!genBtn && !genEth && !genTrx) {
+        boolean genMatic = booleanInput("Generate MATIC(Polygon)?");
+        if (!genBtn && !genEth && !genTrx && !genMatic) {
             return;
         }
         int accountMin = intInput("Account number start", 0, Integer.MAX_VALUE);
@@ -191,6 +192,9 @@ public class Application {
         }
         if (genTrx) {
             list.addAll(deriveKeys(xprv_master, SLIP0044.TRX, accountMin, accountMax, addressIndexMin, addressIndexMax));
+        }
+        if (genMatic) {
+            list.addAll(deriveKeys(xprv_master, SLIP0044.MATIC, accountMin, accountMax, addressIndexMin, addressIndexMax));
         }
 
         // 2-2 Cleanup memory data

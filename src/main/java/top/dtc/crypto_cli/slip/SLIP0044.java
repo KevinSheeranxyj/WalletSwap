@@ -6,4 +6,6 @@ public class SLIP0044 {
     public static final int ETH = 60;
     public static final int TRX = 195;
 
+    public static final int MATIC = 966; // Polygon
+
 }

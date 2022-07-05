@@ -80,8 +80,8 @@ public class DynamoDB {
     public static void printAndTest() {
         System.out.println("AWS_REGION=" + REGION + "\n" +
                 "AWS_ACCESS_KEY_ID=" + ACCESS_KEY_ID + "\n" +
-                "AWS_SECRET_ACCESS_KEY=" + Strings.repeat("*", SECRET_ACCESS_KEY.length()) + "\n" +
-                "KMS_CRYPTO_KEY_ID=" + Strings.repeat("*", KMS_KEY_ID_SUB_WALLET.length()) + "\n" +
+                "AWS_SECRET_ACCESS_KEY=" + (SECRET_ACCESS_KEY == null ? null : Strings.repeat("*", SECRET_ACCESS_KEY.length())) + "\n" +
+                "KMS_KEY_ID_SUB_WALLET=" + (KMS_KEY_ID_SUB_WALLET == null ? null : Strings.repeat("*", KMS_KEY_ID_SUB_WALLET.length())) + "\n" +
                 "DYNAMO_DB_SUB_WALLET_TABLE_NAME=" + DYNAMO_DB_TABLE_NAME_SUB_WALLET);
 
         try {
@@ -115,7 +115,7 @@ public class DynamoDB {
         List<List<SubWallet>> lists = Lists.partition(subWallets, 20);
         ForkJoinPool customThreadPool = new ForkJoinPool(10);
         customThreadPool.submit(() ->
-                lists.parallelStream().forEach(list -> {
+                lists.forEach(list -> {
                     System.out.println("Encrypting & uploading partition " + i.incrementAndGet() + " / " + lists.size());
                     WriteBatch.Builder<SubWallet> writeBatchBuilder = WriteBatch
                             .builder(SubWallet.class)
