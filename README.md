@@ -7,15 +7,28 @@
 |         0 | BTC    | Bitcoin |
 |        60 | ETH    | Ether   |
 |       195 | TRX    | Tron    |
+|       966 | MATIC  | MATIC   |
 
 Ref: https://github.com/satoshilabs/slips/blob/master/slip-0044.md
+
+## Default Settings
+```
+Generate BTC? [Y/N]: Y
+Generate ETH? [Y/N]: Y
+Generate TRX? [Y/N]: Y
+Generate MATIC(Polygon)? [Y/N]: Y
+Account number start [0...2147483647]: 0
+Account number end [0...10000]: 1
+Address index start [0...2147483647]: 0
+Address index end [0...10000]: 2000
+```
 
 ## AWS Setup
 
 ### DynamoDB Table
 
 ```
-Name (Sample): SubWallet
+Name (Sample): xxx-sub-wallet
 Primary key: id (String)
 ```
 
@@ -23,7 +36,7 @@ Primary key: id (String)
 
 ```
 Key type: Symmetric
-Alias (Sample): crypto-cli
+Alias (Sample): xxx-sub-wallet
 ```
 
 ## Usage
