@@ -33,8 +33,8 @@ import java.util.stream.Collectors;
 public class DynamoDB {
 
     private static final String REGION;
-    private static final String ACCESS_KEY_ID;
-    private static final String SECRET_ACCESS_KEY;
+    private static final String AWS_ACCESS_KEY_ID;
+    private static final String AWS_SECRET_ACCESS_KEY;
     private static final String KMS_KEY_ID_SUB_WALLET;
     private static final String DYNAMO_DB_TABLE_NAME_SUB_WALLET;
 
@@ -52,13 +52,13 @@ public class DynamoDB {
             System.exit(-1);
         }
         REGION = map.get("AWS_REGION");
-        ACCESS_KEY_ID = map.get("AWS_ACCESS_KEY_ID");
-        SECRET_ACCESS_KEY = map.get("AWS_SECRET_ACCESS_KEY");
+        AWS_ACCESS_KEY_ID = map.get("AWS_ACCESS_KEY_ID");
+        AWS_SECRET_ACCESS_KEY = map.get("AWS_SECRET_ACCESS_KEY");
         KMS_KEY_ID_SUB_WALLET = map.get("KMS_KEY_ID_SUB_WALLET");
         DYNAMO_DB_TABLE_NAME_SUB_WALLET = map.get("DYNAMO_DB_TABLE_NAME_SUB_WALLET");
     }
 
-    private static final AwsBasicCredentials awsBasicCredentials = AwsBasicCredentials.create(ACCESS_KEY_ID, SECRET_ACCESS_KEY);
+    private static final AwsBasicCredentials awsBasicCredentials = AwsBasicCredentials.create(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY);
     private static final AwsCredentialsProvider credentialsProvider = StaticCredentialsProvider.create(awsBasicCredentials);
 
     private static final KmsClient kmsClient = KmsClient
@@ -79,10 +79,10 @@ public class DynamoDB {
 
     public static void printAndTest() {
         System.out.println("AWS_REGION=" + REGION + "\n" +
-                "AWS_ACCESS_KEY_ID=" + ACCESS_KEY_ID + "\n" +
-                "AWS_SECRET_ACCESS_KEY=" + (SECRET_ACCESS_KEY == null ? null : Strings.repeat("*", SECRET_ACCESS_KEY.length())) + "\n" +
+                "AWS_ACCESS_KEY_ID=" + AWS_ACCESS_KEY_ID + "\n" +
+                "AWS_SECRET_ACCESS_KEY=" + (AWS_SECRET_ACCESS_KEY == null ? null : Strings.repeat("*", AWS_SECRET_ACCESS_KEY.length())) + "\n" +
                 "KMS_KEY_ID_SUB_WALLET=" + (KMS_KEY_ID_SUB_WALLET == null ? null : Strings.repeat("*", KMS_KEY_ID_SUB_WALLET.length())) + "\n" +
-                "DYNAMO_DB_SUB_WALLET_TABLE_NAME=" + DYNAMO_DB_TABLE_NAME_SUB_WALLET);
+                "DYNAMO_DB_TABLE_NAME_SUB_WALLET=" + DYNAMO_DB_TABLE_NAME_SUB_WALLET);
 
         try {
             Key key = Key.builder()
