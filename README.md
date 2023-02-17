@@ -1,4 +1,4 @@
-# DTC-CRYPTO-CLI
+# CRYPTO-CLI
 
 ## Supported Coin Types
 
